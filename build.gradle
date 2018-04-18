@@ -1,0 +1,47 @@
+apply plugin: 'java'
+apply plugin: 'war'
+apply plugin: 'eclipse-wtp'
+
+sourceCompatibility = 1.8
+
+repositories {
+	maven { url 'https://jitpack.io' }
+	mavenCentral()
+}
+
+compileJava	 {
+	options.compilerArgs = ["-proc:none"]  
+}
+
+dependencies {
+	compile 'com.github.Ullink:simple-slack-api:1.2.0'
+	compile 'com.googlecode.json-simple:json-simple:1.1.1'
+
+	compile 'javax.inject:javax.inject:1'
+	compile 'javax.servlet:javax.servlet-api:4.0.0'
+	compile 'javax.ws.rs:javax.ws.rs-api:2.1'
+
+	compile 'org.apache.logging.log4j:log4j-core:2.11.0'
+
+	compile 'org.glassfish.jersey.containers:jersey-container-servlet:2.26'
+	compile ('org.glassfish.jersey.ext:jersey-spring4:2.26') {
+		exclude group: 'org.springframework', module: 'spring-beans'
+		exclude group: 'org.springframework', module: 'spring-core'
+		exclude group: 'org.springframework', module: 'spring-aop'
+		exclude group: 'org.springframework', module: 'spring-context'
+		exclude group: 'org.springframework', module: 'spring-web'
+	}
+	compile 'org.glassfish.jersey.media:jersey-media-json-jackson:2.26'
+	compile 'org.springframework:spring-web:4.3.15.RELEASE'
+	compile 'org.springframework.data:spring-data-mongodb:1.10.10.RELEASE'
+
+	testCompile 'com.github.fakemongo:fongo:2.1.1'
+}
+
+war {
+	archiveName = 'betrayalapi.war'
+}
+
+eclipse {
+	project.natures 'org.eclipse.buildship.core.gradleprojectnature'
+}

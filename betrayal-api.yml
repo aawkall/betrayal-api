@@ -1,0 +1,19 @@
+# betrayal-api.yml
+version: "3"
+services:
+
+  betrayal:
+    network_mode: bridge
+    hostname: betrayal
+    image: betrayal-api
+    ports:
+      - "8189:8080"
+    links:
+      - mongo
+
+  mongo:
+    network_mode: bridge
+    hostname: mongo
+    image: mongo
+    ports:
+      - "27017:27017"
