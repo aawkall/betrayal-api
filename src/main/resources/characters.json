@@ -9,7 +9,7 @@
 		"knowledge": [0, 1, 3, 3, 5, 5, 6, 6, 7],
 		"knowledge_base_index": 3,
 		"color": "green",
-		"flip_side": "peter_akimoto"
+		"flip_side": "peter akimoto"
 	},
 	"darrin_williams": {
 		"speed": [0, 4, 4, 4, 5, 6, 7, 7, 8],
@@ -21,7 +21,7 @@
 		"knowledge": [0, 2, 3, 3, 4, 5, 5, 5, 7],
 		"knowledge_base_index": 3,
 		"color": "red",
-		"flip_side": "ox_bellows"
+		"flip_side": "ox bellows"
 	},
 	"father_rhinehardt": {
 		"speed": [0, 2, 3, 3, 4, 5, 6, 7, 7],
@@ -33,7 +33,7 @@
 		"knowledge": [0, 1, 3, 3, 4, 5, 6, 6, 8],
 		"knowledge_base_index": 4,
 		"color": "white",
-		"flip_side": "professor_longfellow"
+		"flip_side": "professor longfellow"
 	},
 	"jenny_leclerc": {
 		"speed": [0, 2, 3, 4, 4, 4, 5, 6, 8],
@@ -45,7 +45,7 @@
 		"knowledge": [0, 2, 3, 3, 4, 4, 5, 6, 8],
 		"knowledge_base_index": 3,
 		"color": "purple",
-		"flip_side": "heather_granville"
+		"flip_side": "heather granville"
 	},
 	"heather_granville": {
 		"speed": [0, 3, 3, 4, 5, 6, 6, 7, 8],
@@ -57,7 +57,7 @@
 		"knowledge": [0, 2, 3, 3, 4, 5, 6, 7, 8],
 		"knowledge_base_index": 5,
 		"color": "purple",
-		"flip_side": "jenny_leclerc"
+		"flip_side": "jenny leclerc"
 	},
 	"madame_zostra": {
 		"speed": [0, 2, 3, 3, 5, 5, 6, 6, 7],
@@ -69,7 +69,7 @@
 		"knowledge": [0, 1, 3, 4, 4, 4, 5, 6, 6],
 		"knowledge_base_index": 4,
 		"color": "blue",
-		"flip_side": "vivian_lopez"
+		"flip_side": "vivian lopez"
 	},
 	"missy_dubourde": {
 		"speed": [0, 3, 4, 5, 6, 6, 6, 7, 7],
@@ -81,7 +81,7 @@
 		"knowledge": [0, 2, 3, 4, 4, 5, 6, 6, 6],
 		"knowledge_base_index": 4,
 		"color": "yellow",
-		"flip_side": "zoe_ingstrom"
+		"flip_side": "zoe ingstrom"
 	},
 	"ox_bellows": {
 		"speed": [0, 2, 2, 2, 3, 4, 5, 5, 6],
@@ -93,7 +93,7 @@
 		"knowledge": [0, 2, 2, 3, 3, 5, 5, 6, 6],
 		"knowledge_base_index": 3,
 		"color": "red",
-		"flip_side": "darren_williams"
+		"flip_side": "darren williams"
 	},
 	"peter_akimoto": {
 		"speed": [0, 3, 3, 3, 4, 6, 6, 7, 7],
@@ -105,7 +105,7 @@
 		"knowledge": [0, 3, 4, 4, 5, 6, 7, 7, 8],
 		"knowledge_base_index": 3,
 		"color": "green",
-		"flip_side": "brandon_jaspers"
+		"flip_side": "brandon jaspers"
 	},
 	"professor_longfellow": {
 		"speed": [0, 2, 2, 4, 4, 5, 5, 6, 6],
@@ -117,7 +117,7 @@
 		"knowledge": [0, 4, 5, 5, 5, 5, 6, 7, 8],
 		"knowledge_base_index": 5,
 		"color": "white",
-		"flip_side": "father_rhinehardt"
+		"flip_side": "father rhinehardt"
 	},
 	"vivian_lopez": {
 		"speed": [0, 3, 4, 4, 4, 4, 6, 7, 8],
@@ -129,7 +129,7 @@
 		"knowledge": [0, 4, 5, 5, 5, 5, 6, 6, 7],
 		"knowledge_base_index": 4,
 		"color": "blue",
-		"flip_side": "madame_zostra"
+		"flip_side": "madame zostra"
 	},
 	"zoe_ingstrom": {
 		"speed": [0, 4, 4, 4, 4, 5, 6, 8, 8],
@@ -141,6 +141,6 @@
 		"knowledge": [0, 1, 2, 3, 4, 4, 5, 5, 5],
 		"knowledge_base_index": 3,
 		"color": "yellow",
-		"flip_side": "missy_dubourde"
+		"flip_side": "missy dubourde"
 	}
 }

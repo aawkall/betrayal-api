@@ -1,5 +1,6 @@
 package com.github.aawkall.betrayalapi.config;
 
+import java.io.IOException;
 import java.net.UnknownHostException;
 
 import javax.inject.Inject;
@@ -7,7 +8,6 @@ import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
@@ -16,18 +16,26 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import com.github.aawkall.betrayalapi.util.BetrayalConst;
 import com.mongodb.MongoClient;
 
+import cz.jirutka.spring.embedmongo.EmbeddedMongoBuilder;
+
 @Configuration
-@ComponentScan(basePackages = {"com.github.aawkall.betrayalapi.service", "com.github.aawkall.betrayalapi.resource"})
+@ComponentScan(basePackages = {"com.github.aawkall.betrayalapi.service"})
 @EnableMongoRepositories(basePackages = "com.github.aawkall.betrayalapi.repository")
-public class ApplicationContext {
+public class TestContext {
+
+	@Bean(destroyMethod = "close", name = "mongoClient")
+	public MongoClient mongoClient() throws IOException {
+		return new EmbeddedMongoBuilder()
+				.version("2.8.0-rc5")
+				.bindIp("127.0.0.1")
+				.port(12345)
+				.build();
+	}
 
 	@Inject
-	private Environment env;
-
 	@Bean
-	public MongoDbFactory mongoDbFactory() throws UnknownHostException {
-		return new SimpleMongoDbFactory(new MongoClient(
-				env.getProperty(BetrayalConst.MONGO_HOST_KEY, BetrayalConst.DOCKER_MONGO_HOST)), BetrayalConst.DB_NAME);
+	public MongoDbFactory mongoDbFactory(final MongoClient mongoClient) throws UnknownHostException {
+		return new SimpleMongoDbFactory(mongoClient, BetrayalConst.DB_NAME);
 	}
 
 	@Inject

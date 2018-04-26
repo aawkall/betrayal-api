@@ -1,6 +1,7 @@
 package com.github.aawkall.betrayalapi.entity;
 
 import java.util.Date;
+import java.util.Objects;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -8,7 +9,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.DateTimeFormat.ISO;
 
-@Document(collection = "games")
+import com.github.aawkall.betrayalapi.util.BetrayalConst;
+
+@Document(collection = BetrayalConst.BETRAYAL_COLLECTION)
 public final class Betrayal {
 
 	@Id
@@ -50,6 +53,21 @@ public final class Betrayal {
 
 	public void setHauntNumber(int hauntNumber) {
 		this.hauntNumber = hauntNumber;
+	}
+
+	@Override
+	public boolean equals(Object object) {
+		if (object == this) {
+			return true;
+		}
+		if (!(object instanceof Betrayal)) {
+			return false;
+		}
+
+		Betrayal toCompare = (Betrayal) object;
+		return Objects.equals(channelId, toCompare.getChannelId())
+			&& Objects.equals(timeCreated, toCompare.getTimeCreated())
+			&& hauntNumber == toCompare.hauntNumber;
 	}
 
 	@Override

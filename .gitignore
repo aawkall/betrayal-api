@@ -1,5 +1,7 @@
 build/
 bin/
+test-output/
+${catalina.home}/
 .gradle/
 .classpath
 .project

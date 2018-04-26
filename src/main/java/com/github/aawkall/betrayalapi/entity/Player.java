@@ -1,6 +1,7 @@
 package com.github.aawkall.betrayalapi.entity;
 
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.StringTokenizer;
 
 import org.springframework.data.annotation.Id;
@@ -9,9 +10,10 @@ import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.github.aawkall.betrayalapi.util.BetrayalConst;
 import com.github.aawkall.betrayalapi.util.BetrayalConst.Stat;
 
-@Document(collection = "players")
+@Document(collection = BetrayalConst.PLAYER_COLLECTION)
 @CompoundIndexes({
 	@CompoundIndex(name = "channelId_name_index", def = "{'channelId' : 1, 'name': 1}"),
 	@CompoundIndex(name = "channelId_character_index", def = "{'channelId' : 1, 'character': 1}"),
@@ -192,6 +194,27 @@ public final class Player {
 	}
 
 	@Override
+	public boolean equals(Object object) {
+		if (object == this) {
+			return true;
+		}
+		if (!(object instanceof Player)) {
+			return false;
+		}
+
+		Player toCompare = (Player) object;
+		return Objects.equals(channelId, toCompare.getChannelId())
+			&& Objects.equals(name, toCompare.getName())
+			&& character == toCompare.getCharacter()
+			&& speedIndex == toCompare.getSpeedIndex()
+			&& mightIndex == toCompare.getMightIndex()
+			&& sanityIndex == toCompare.getSanityIndex()
+			&& knowledgeIndex == toCompare.getKnowledgeIndex()
+			&& isTraitor == toCompare.getIsTraitor()
+			&& isAlive == toCompare.getIsAlive();
+	}
+
+    @Override
 	public String toString() {
 		return String.format(
 				"Player[id=%s, channelId=%s, name=%s, character=%s, speedIndex=%s, mightIndex=%s, sanityIndex=%s, knowledgeIndex=%s, isTraitor=%s, isAlive=%s]",
