@@ -1,8 +1,10 @@
-package com.github.aawkall.betrayalapi.entity;
+package com.github.aawkall.betrayalapi.entity.db;
 
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.StringTokenizer;
+
+import javax.ws.rs.core.Response;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
@@ -10,15 +12,16 @@ import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.github.aawkall.betrayalapi.exception.BetrayalException;
 import com.github.aawkall.betrayalapi.util.BetrayalConst;
 import com.github.aawkall.betrayalapi.util.BetrayalConst.Stat;
 
 @Document(collection = BetrayalConst.PLAYER_COLLECTION)
 @CompoundIndexes({
-	@CompoundIndex(name = "channelId_name_index", def = "{'channelId' : 1, 'name': 1}"),
-	@CompoundIndex(name = "channelId_character_index", def = "{'channelId' : 1, 'character': 1}"),
-	@CompoundIndex(name = "channelId_isTraitor_index", def = "{'channelId' : 1, 'isTraitor': 1}"),
-	@CompoundIndex(name = "channelId_isAlive_index", def = "{'channelId' : 1, 'isAlive': 1}")
+		@CompoundIndex(name = "betrayalId_character_index", def = "{'betrayalId' : 1, 'character': 1}"),
+		@CompoundIndex(name = "betrayalId_name_index", def = "{'betrayalId' : 1, 'name': 1}"),
+		@CompoundIndex(name = "betrayalId_isTraitor_index", def = "{'betrayalId' : 1, 'isTraitor': 1}"),
+		@CompoundIndex(name = "betrayalId_isAlive_index", def = "{'betrayalId' : 1, 'isAlive': 1}")
 })
 public final class Player {
 
@@ -42,19 +45,27 @@ public final class Player {
 			this.characterName = characterName;
 		}
 
-		public static Character fromString(String text) {
+		public static Character fromString(String text) throws BetrayalException {
 			// Process each token from the input text separately, to see if any tokens match a character name
-			StringTokenizer st = new StringTokenizer(text);
+			StringTokenizer st = new StringTokenizer(text, "_- \t\n\r\f");
 			EnumSet<Character> characters = EnumSet.allOf(Player.Character.class);
+			Character character = null;
 			while (st.hasMoreTokens()) {
 				String token = st.nextToken();
 				for (Character c : characters) {
-					if (c.characterName.toLowerCase().contains(token.toLowerCase())) {
-						return c;
+					if (c.characterName.toLowerCase().replace(" ", "").contains(token.toLowerCase())) {
+						// If we haven't found a matching character yet, store this one
+						if (character == null) {
+							character = c;
+						} else if (character != c) {
+							// We found another different character that matches - throw an exception
+							throw new BetrayalException(String.format("More than one character was found matching String: %s", text),
+									Response.Status.BAD_REQUEST);
+						}
 					}
 				}
 			}
-			return null;
+			return character;
 		}
 
 		@Override
@@ -67,30 +78,38 @@ public final class Player {
 	private String _id;
 
 	@Indexed
-	private String channelId;
-	private String name;
+	private String betrayalId;
 	private Character character;
+	private String name;
+	private boolean isTraitor;
+	private boolean isAlive;
 	private int speedIndex;
 	private int mightIndex;
 	private int sanityIndex;
 	private int knowledgeIndex;
-	private boolean isTraitor;
-	private boolean isAlive;
 
-	public Player(String channelId, String name, Character character) {
-		this.channelId = channelId;
-		this.name = name;
+	public Player(String betrayalId, Character character, String name) {
+		this.betrayalId = betrayalId;
 		this.character = character;
+		this.name = name;
 		this.isTraitor = false;
 		this.isAlive = true;
 	}
 
-	public String getChannelId() {
-		return channelId;
+	public String getBetrayalId() {
+		return betrayalId;
 	}
 
-	public void setChannelId(String channelId) {
-		this.channelId = channelId;
+	public void setBetrayalId(String betrayalId) {
+		this.betrayalId = betrayalId;
+	}
+
+	public Character getCharacter() {
+		return character;
+	}
+
+	public void setCharacter(Character character) {
+		this.character = character;
 	}
 
 	public String getName() {
@@ -101,12 +120,20 @@ public final class Player {
 		this.name = name;
 	}
 
-	public Character getCharacter() {
-		return character;
+	public boolean getIsTraitor() {
+		return isTraitor;
 	}
 
-	public void setCharacter(Character character) {
-		this.character = character;
+	public void setIsTraitor(boolean isTraitor) {
+		this.isTraitor = isTraitor;
+	}
+
+	public boolean getIsAlive() {
+		return isAlive;
+	}
+
+	public void setIsAlive(boolean isAlive) {
+		this.isAlive = isAlive;
 	}
 
 	public int getSpeedIndex() {
@@ -142,7 +169,7 @@ public final class Player {
 	}
 
 	public void setStatIndex(Stat stat, int index) {
-		switch(stat) {
+		switch (stat) {
 			case SPEED:
 				this.setSpeedIndex(index);
 				break;
@@ -160,7 +187,7 @@ public final class Player {
 
 	public int getStatIndex(Stat stat) {
 		int index = 0;
-		switch(stat) {
+		switch (stat) {
 			case SPEED:
 				index = this.getSpeedIndex();
 				break;
@@ -177,22 +204,6 @@ public final class Player {
 		return index;
 	}
 
-	public boolean getIsTraitor() {
-		return isTraitor;
-	}
-
-	public void setIsTraitor(boolean isTraitor) {
-		this.isTraitor = isTraitor;
-	}
-
-	public boolean getIsAlive() {
-		return isAlive;
-	}
-
-	public void setIsAlive(boolean isAlive) {
-		this.isAlive = isAlive;
-	}
-
 	@Override
 	public boolean equals(Object object) {
 		if (object == this) {
@@ -203,21 +214,20 @@ public final class Player {
 		}
 
 		Player toCompare = (Player) object;
-		return Objects.equals(channelId, toCompare.getChannelId())
-			&& Objects.equals(name, toCompare.getName())
-			&& character == toCompare.getCharacter()
-			&& speedIndex == toCompare.getSpeedIndex()
-			&& mightIndex == toCompare.getMightIndex()
-			&& sanityIndex == toCompare.getSanityIndex()
-			&& knowledgeIndex == toCompare.getKnowledgeIndex()
-			&& isTraitor == toCompare.getIsTraitor()
-			&& isAlive == toCompare.getIsAlive();
+		return Objects.equals(betrayalId, toCompare.getBetrayalId())
+				&& character == toCompare.getCharacter()
+				&& Objects.equals(name, toCompare.getName())
+				&& speedIndex == toCompare.getSpeedIndex()
+				&& mightIndex == toCompare.getMightIndex()
+				&& sanityIndex == toCompare.getSanityIndex()
+				&& knowledgeIndex == toCompare.getKnowledgeIndex()
+				&& isTraitor == toCompare.getIsTraitor()
+				&& isAlive == toCompare.getIsAlive();
 	}
 
-    @Override
+	@Override
 	public String toString() {
-		return String.format(
-				"Player[id=%s, channelId=%s, name=%s, character=%s, speedIndex=%s, mightIndex=%s, sanityIndex=%s, knowledgeIndex=%s, isTraitor=%s, isAlive=%s]",
-				_id, channelId, name, character, speedIndex, mightIndex, sanityIndex, knowledgeIndex, isTraitor, isAlive);
+		return String.format("Player[id=%s, betrayalId=%s, character=%s, name=%s, speedIndex=%s, mightIndex=%s, sanityIndex=%s, knowledgeIndex=%s, isTraitor=%s, isAlive=%s]",
+				_id, betrayalId, character, name, speedIndex, mightIndex, sanityIndex, knowledgeIndex, isTraitor, isAlive);
 	}
 }

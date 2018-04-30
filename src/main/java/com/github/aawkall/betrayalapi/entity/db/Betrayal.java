@@ -1,4 +1,4 @@
-package com.github.aawkall.betrayalapi.entity;
+package com.github.aawkall.betrayalapi.entity.db;
 
 import java.util.Date;
 import java.util.Objects;
@@ -18,25 +18,25 @@ public final class Betrayal {
 	private String _id;
 
 	@Indexed
-	private String channelId;
+	private String betrayalId;
 
 	@DateTimeFormat(iso = ISO.DATE_TIME)
 	private Date timeCreated;
 
 	private int hauntNumber;
 
-	public Betrayal(String channelId, Date timeCreated) {
-		this.channelId = channelId;
+	public Betrayal(String betrayalId, Date timeCreated) {
+		this.betrayalId = betrayalId;
 		this.timeCreated = timeCreated;
 		this.hauntNumber = 0;
 	}
 
-	public String getChannelId() {
-		return channelId;
+	public String getBetrayalId() {
+		return betrayalId;
 	}
 
-	public void setChannelId(String channelId) {
-		this.channelId = channelId;
+	public void setBetrayalId(String betrayalId) {
+		this.betrayalId = betrayalId;
 	}
 
 	public Date getTimeCreated() {
@@ -65,13 +65,13 @@ public final class Betrayal {
 		}
 
 		Betrayal toCompare = (Betrayal) object;
-		return Objects.equals(channelId, toCompare.getChannelId())
-			&& Objects.equals(timeCreated, toCompare.getTimeCreated())
-			&& hauntNumber == toCompare.hauntNumber;
+		return Objects.equals(betrayalId, toCompare.getBetrayalId())
+				&& Objects.equals(timeCreated, toCompare.getTimeCreated())
+				&& hauntNumber == toCompare.hauntNumber;
 	}
 
 	@Override
 	public String toString() {
-		return String.format("Betrayal[_id=%s, channelId=%s, timeCreated=%s, hauntNumber=%s]", _id, channelId, timeCreated, hauntNumber);
+		return String.format("Betrayal[_id=%s, betrayalId=%s, timeCreated=%s, hauntNumber=%s]", _id, betrayalId, timeCreated, hauntNumber);
 	}
 }

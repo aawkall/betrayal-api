@@ -18,9 +18,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.github.aawkall.betrayalapi.config.TestContext;
-import com.github.aawkall.betrayalapi.entity.Betrayal;
-import com.github.aawkall.betrayalapi.entity.Player;
-import com.github.aawkall.betrayalapi.entity.Player.Character;
+import com.github.aawkall.betrayalapi.entity.db.Betrayal;
+import com.github.aawkall.betrayalapi.entity.db.Player;
+import com.github.aawkall.betrayalapi.entity.db.Player.Character;
 import com.github.aawkall.betrayalapi.exception.BetrayalException;
 import com.github.aawkall.betrayalapi.util.BetrayalConst;
 import com.github.aawkall.betrayalapi.util.BetrayalConst.Stat;
@@ -30,7 +30,7 @@ import com.mongodb.MongoClient;
 @TestExecutionListeners(inheritListeners = false, value = { DependencyInjectionTestExecutionListener.class })
 public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 
-	private static final String CHANNEL_ID = "TestChannelId";
+	private static final String CHANNEL_ID = "TestBetrayalId";
 	private static final String ALTERNATE_CHANNEL_ID = "FakeId";
 	private static final int HAUNT_NUMBER = 15;
 
@@ -55,12 +55,12 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void testCreateBetrayalGame_conflict() throws BetrayalException {
-		// Create betrayal game, then create another with the same channelId
+		// Create betrayal game, then create another with the same betrayalId
 		betrayalService.createBetrayalGame(CHANNEL_ID);
 
 		try {
 			betrayalService.createBetrayalGame(CHANNEL_ID);
-			Assert.fail("CreateBetrayalGame with same channelId should have thrown an exception");
+			Assert.fail("CreateBetrayalGame with same betrayalId should have thrown an exception");
 		} catch (BetrayalException e) {
 			Assert.assertEquals(e.getHttpCode(), Response.Status.CONFLICT);
 		}
@@ -80,14 +80,14 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testGetBetrayalGame_channelIdNotFound() throws BetrayalException {
-		// Create alternate betrayal game, to ensure query is using channelId
+	public void testGetBetrayalGame_betrayalIdNotFound() throws BetrayalException {
+		// Create alternate betrayal game, to ensure query is using betrayalId
 		betrayalService.createBetrayalGame(ALTERNATE_CHANNEL_ID);
 
 		try {
-			// Get betrayal game with nonexistent channelId
+			// Get betrayal game with nonexistent betrayalId
 			betrayalService.getBetrayalGame(CHANNEL_ID);
-			Assert.fail("GetBetrayalGame with nonexistent channelId should have thrown an exception");
+			Assert.fail("GetBetrayalGame with nonexistent betrayalId should have thrown an exception");
 		} catch (BetrayalException e) {
 			Assert.assertEquals(e.getHttpCode(), Response.Status.NOT_FOUND);
 		}
@@ -108,11 +108,11 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testAddPlayer_nameAlreadyExists() throws BetrayalException {
 		// Add player with name, then try to add again with same name but different character
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
+		betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
 
 		try {
-			betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.BRANDON_JASPERS);
-			Assert.fail("AddPlayer with existing name within given channelId should have thrown an exception");
+			betrayalService.addPlayer(CHANNEL_ID, Character.BRANDON_JASPERS, "Aaron");
+			Assert.fail("AddPlayer with existing name within given betrayalId should have thrown an exception");
 		} catch (BetrayalException e) {
 			Assert.assertEquals(e.getHttpCode(), Response.Status.CONFLICT);
 		}
@@ -122,11 +122,11 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testAddPlayer_characterAlreadyExists() throws BetrayalException {
 		// Add player with character, then try to add again with same character but different name
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
+		betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
 
 		try {
-			betrayalService.addPlayer(CHANNEL_ID, "Chris", Character.ZOE_INGSTROM);
-			Assert.fail("AddPlayer with existing character within given channelId should have thrown an exception");
+			betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Chris");
+			Assert.fail("AddPlayer with existing character within given betrayalId should have thrown an exception");
 		} catch (BetrayalException e) {
 			Assert.assertEquals(e.getHttpCode(), Response.Status.CONFLICT);
 		}
@@ -136,11 +136,11 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testAddPlayer_flipSideAlreadyExists() throws BetrayalException {
 		// Add player with flipside character, then try to add again with character from other side
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
+		betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
 
 		try {
-			betrayalService.addPlayer(CHANNEL_ID, "Chris", Character.MISSY_DUBOURDE);
-			Assert.fail("AddPlayer with flipside character within given channelId should have thrown an exception");
+			betrayalService.addPlayer(CHANNEL_ID, Character.MISSY_DUBOURDE, "Chris");
+			Assert.fail("AddPlayer with flipside character within given betrayalId should have thrown an exception");
 		} catch (BetrayalException e) {
 			Assert.assertEquals(e.getHttpCode(), Response.Status.CONFLICT);
 		}
@@ -150,7 +150,7 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testAddPlayer_success() throws BetrayalException {
 		// Create game and add player
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		Player addPlayer = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
+		Player addPlayer = betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
 
 		// Get Player from the DB via name, verify info is the same and verify stats are at base level
 		Player namePlayer = betrayalService.getPlayer(CHANNEL_ID, "Aaron");
@@ -166,24 +166,24 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testAddPlayer_sameDataDifferentChannelId() throws BetrayalException {
+	public void testAddPlayer_sameDataDifferentBetrayalId() throws BetrayalException {
 		// Create two betrayal games, add the same player to both, and ensure no exceptions are thrown
 		betrayalService.createBetrayalGame(CHANNEL_ID);
 		betrayalService.createBetrayalGame(ALTERNATE_CHANNEL_ID);
-		betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
-		betrayalService.addPlayer(ALTERNATE_CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
+		betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
+		betrayalService.addPlayer(ALTERNATE_CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
 	}
 
 	@Test
 	public void testGetPlayer_nameNotFound() throws BetrayalException {
 		// Create game and player with a different name
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
+		betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
 
 		try {
 			// Get player with nonexistent name
 			betrayalService.getPlayer(CHANNEL_ID, "NoName");
-			Assert.fail("GetPlayer with nonexistent name within given channelId should have thrown an exception");
+			Assert.fail("GetPlayer with nonexistent name within given betrayalId should have thrown an exception");
 		} catch (BetrayalException e) {
 			Assert.assertEquals(e.getHttpCode(), Response.Status.NOT_FOUND);
 		}
@@ -193,12 +193,12 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testGetPlayer_characterNotFound() throws BetrayalException {
 		// Create game and player with a different character
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
+		betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
 
 		try {
 			// Get player with other nonexistent character
 			betrayalService.getPlayer(CHANNEL_ID, Character.BRANDON_JASPERS);
-			Assert.fail("GetPlayer with nonexistent character within given channelId should have thrown an exception");
+			Assert.fail("GetPlayer with nonexistent character within given betrayalId should have thrown an exception");
 		} catch (BetrayalException e) {
 			Assert.assertEquals(e.getHttpCode(), Response.Status.NOT_FOUND);
 		}
@@ -208,8 +208,8 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testGetAllPlayers_success() throws BetrayalException {
 		// Create game and add 2 players
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		Player player1 = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
-		Player player2 = betrayalService.addPlayer(CHANNEL_ID, "Chris", Character.BRANDON_JASPERS);
+		Player player1 = betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
+		Player player2 = betrayalService.addPlayer(CHANNEL_ID, Character.BRANDON_JASPERS, "Chris");
 
 		// Get all players, verify size and player data
 		List<Player> players = betrayalService.getAllPlayers(CHANNEL_ID);
@@ -225,9 +225,9 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 
 		// Create alternate game with one player
 		betrayalService.createBetrayalGame(ALTERNATE_CHANNEL_ID);
-		betrayalService.addPlayer(ALTERNATE_CHANNEL_ID, "Aaron", Character.BRANDON_JASPERS);
+		betrayalService.addPlayer(ALTERNATE_CHANNEL_ID, Character.BRANDON_JASPERS, "Aaron");
 
-		// Get all players for initial channelId, verify size is 0
+		// Get all players for initial betrayalId, verify size is 0
 		List<Player> players = betrayalService.getAllPlayers(CHANNEL_ID);
 		Assert.assertEquals(players.size(), 0);
 	}
@@ -236,8 +236,8 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testGetAllTraitors_success() throws BetrayalException {
 		// Create game and add 2 players, marking only one as a traitor
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		Player hero = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
-		Player traitor = betrayalService.addPlayer(CHANNEL_ID, "Chris", Character.BRANDON_JASPERS);
+		Player hero = betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
+		Player traitor = betrayalService.addPlayer(CHANNEL_ID, Character.BRANDON_JASPERS, "Chris");
 		traitor = betrayalService.markAsTraitor(CHANNEL_ID, traitor.getCharacter());
 
 		// Get all traitors, verify size and players in the list
@@ -251,7 +251,7 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testGetAllTraitors_empty() throws BetrayalException {
 		// Create game, adding only one player, but leaving them as a hero
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
+		betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
 
 		// Get all traitors, verify size is 0
 		List<Player> traitors = betrayalService.getAllTraitors(CHANNEL_ID);
@@ -262,8 +262,8 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testGetAllHeroes_success() throws BetrayalException {
 		// Create game and add 2 players, marking only one as a traitor
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		Player hero = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
-		Player traitor = betrayalService.addPlayer(CHANNEL_ID, "Chris", Character.BRANDON_JASPERS);
+		Player hero = betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
+		Player traitor = betrayalService.addPlayer(CHANNEL_ID, Character.BRANDON_JASPERS, "Chris");
 		traitor = betrayalService.markAsTraitor(CHANNEL_ID, traitor.getCharacter());
 
 		// Get all heroes, verify size and players in the list
@@ -277,7 +277,7 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testGetAllHeroes_empty() throws BetrayalException {
 		// Create game, adding only one player, and mark them as a traitor
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		Player traitor = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
+		Player traitor = betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
 		betrayalService.markAsTraitor(CHANNEL_ID, traitor.getCharacter());
 
 		// Get all heroes, verify size is 0
@@ -289,8 +289,8 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testGetAllAlive_success() throws BetrayalException {
 		// Create game and add 2 players, marking only one as dead
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		Player alive = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
-		Player dead = betrayalService.addPlayer(CHANNEL_ID, "Chris", Character.BRANDON_JASPERS);
+		Player alive = betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
+		Player dead = betrayalService.addPlayer(CHANNEL_ID, Character.BRANDON_JASPERS, "Chris");
 		dead = betrayalService.markAsDead(CHANNEL_ID, dead.getCharacter());
 
 		// Get all alive, verify size and players in the list
@@ -304,7 +304,7 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testGetAllAlive_empty() throws BetrayalException {
 		// Create game, adding only one player, and mark them as dead
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		Player dead = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
+		Player dead = betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
 		betrayalService.markAsDead(CHANNEL_ID, dead.getCharacter());
 
 		// Get all living, verify size is 0
@@ -316,8 +316,8 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testGetAllDead_success() throws BetrayalException {
 		// Create game and add 2 players, marking only one as dead
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		Player alive = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
-		Player dead = betrayalService.addPlayer(CHANNEL_ID, "Chris", Character.BRANDON_JASPERS);
+		Player alive = betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
+		Player dead = betrayalService.addPlayer(CHANNEL_ID, Character.BRANDON_JASPERS, "Chris");
 		dead = betrayalService.markAsDead(CHANNEL_ID, dead.getCharacter());
 
 		// Get all of the dead, verify size and players in the list
@@ -331,7 +331,7 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testGetAllDead_empty() throws BetrayalException {
 		// Create game, adding only one player, leaving them as alive
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
+		betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
 
 		// Get all dead, verify size is 0
 		List<Player> dead = betrayalService.getAllDead(CHANNEL_ID);
@@ -343,7 +343,7 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 		// Create game and add player
 		String playerName = "Aaron";
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		betrayalService.addPlayer(CHANNEL_ID, playerName, Character.ZOE_INGSTROM);
+		betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, playerName);
 
 		// Mark player as dead via name, then get player to verify
 		betrayalService.markAsDead(CHANNEL_ID, playerName);
@@ -359,7 +359,7 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 		// Create game and add player
 		Character playerCharacter = Character.BRANDON_JASPERS;
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		betrayalService.addPlayer(CHANNEL_ID, "Aaron", playerCharacter);
+		betrayalService.addPlayer(CHANNEL_ID, playerCharacter, "Aaron");
 
 		// Mark player as dead via character, then get player to verify
 		betrayalService.markAsDead(CHANNEL_ID, playerCharacter);
@@ -375,7 +375,7 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 		// Create game and add player
 		String playerName = "Aaron";
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		betrayalService.addPlayer(CHANNEL_ID, playerName, Character.ZOE_INGSTROM);
+		betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, playerName);
 
 		// Mark player as traitor via name, then get player to verify
 		betrayalService.markAsTraitor(CHANNEL_ID, playerName);
@@ -391,7 +391,7 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 		// Create game and add player
 		Character playerCharacter = Character.BRANDON_JASPERS;
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		betrayalService.addPlayer(CHANNEL_ID, "Aaron", playerCharacter);
+		betrayalService.addPlayer(CHANNEL_ID, playerCharacter, "Aaron");
 
 		// Mark player as traitor via character, then get player to verify
 		betrayalService.markAsTraitor(CHANNEL_ID, playerCharacter);
@@ -406,7 +406,7 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testIncrementStatIndex_pastMax() throws BetrayalException {
 		// Create Betrayal game, add player
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		Player player = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.BRANDON_JASPERS);
+		Player player = betrayalService.addPlayer(CHANNEL_ID, Character.BRANDON_JASPERS, "Aaron");
 
 		// Loop incrementing a stat of the player until they try to increment past the max stat index
 		// Try by name and by character
@@ -430,7 +430,7 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testIncrementStatIndex_success() throws BetrayalException {
 		// Create Betrayal game, add player
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		Player addPlayer = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.BRANDON_JASPERS);
+		Player addPlayer = betrayalService.addPlayer(CHANNEL_ID, Character.BRANDON_JASPERS, "Aaron");
 
 		// Increment each of their stats twice, using both name and character
 		betrayalService.incrementStatIndex(CHANNEL_ID, addPlayer.getName(), Stat.SPEED);
@@ -454,7 +454,7 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testDecrementStatIndex_pastZero() throws BetrayalException {
 		// Create Betrayal game, add player
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		Player player = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.BRANDON_JASPERS);
+		Player player = betrayalService.addPlayer(CHANNEL_ID, Character.BRANDON_JASPERS, "Aaron");
 
 		// Loop decrementing a stat of the player until they try to decrement past zero
 		// Try by name and by character
@@ -478,7 +478,7 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testDecrementStatIndex_success() throws BetrayalException {
 		// Create Betrayal game, add player
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		Player addPlayer = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.BRANDON_JASPERS);
+		Player addPlayer = betrayalService.addPlayer(CHANNEL_ID, Character.BRANDON_JASPERS, "Aaron");
 
 		// Decrement each of their stats twice, using both name and character
 		betrayalService.decrementStatIndex(CHANNEL_ID, addPlayer.getName(), Stat.SPEED);
@@ -509,7 +509,7 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testResetStatIndex_success() throws BetrayalException {
 		// Create Betrayal game, add player and keep for initial stat values
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		Player addPlayer = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.BRANDON_JASPERS);
+		Player addPlayer = betrayalService.addPlayer(CHANNEL_ID, Character.BRANDON_JASPERS, "Aaron");
 
 		// Increment each of their stats, then reset stat index for each (using both name and character)
 		betrayalService.incrementStatIndex(CHANNEL_ID, addPlayer.getName(), Stat.SPEED);
@@ -533,12 +533,12 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testDeletePlayer_nameNotFound() throws BetrayalException {
 		// Create game and player with a different name
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
+		betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
 
 		try {
 			// Delete player with nonexistent name
 			betrayalService.deletePlayer(CHANNEL_ID, "NoName");
-			Assert.fail("DeletePlayer with nonexistent name within given channelId should have thrown an exception");
+			Assert.fail("DeletePlayer with nonexistent name within given betrayalId should have thrown an exception");
 		} catch (BetrayalException e) {
 			Assert.assertEquals(e.getHttpCode(), Response.Status.NOT_FOUND);
 		}
@@ -548,12 +548,12 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testDeletePlayer_characterNotFound() throws BetrayalException {
 		// Create game and player with a different character
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
+		betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
 
 		try {
 			// Delete player with nonexistent character
 			betrayalService.deletePlayer(CHANNEL_ID, Character.BRANDON_JASPERS);
-			Assert.fail("DeletePlayer with nonexistent character within given channelId should have thrown an exception");
+			Assert.fail("DeletePlayer with nonexistent character within given betrayalId should have thrown an exception");
 		} catch (BetrayalException e) {
 			Assert.assertEquals(e.getHttpCode(), Response.Status.NOT_FOUND);
 		}
@@ -563,9 +563,9 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	public void testDeletePlayer_success() throws BetrayalException {
 		// Create game and add three players
 		betrayalService.createBetrayalGame(CHANNEL_ID);
-		Player deleteByName = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
-		Player deleteByCharacter = betrayalService.addPlayer(CHANNEL_ID, "Chris", Character.VIVIAN_LOPEZ);
-		Player getsToStay = betrayalService.addPlayer(CHANNEL_ID, "Laura", Character.HEATHER_GRANVILLE);
+		Player deleteByName = betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
+		Player deleteByCharacter = betrayalService.addPlayer(CHANNEL_ID, Character.VIVIAN_LOPEZ, "Chris");
+		Player getsToStay = betrayalService.addPlayer(CHANNEL_ID, Character.HEATHER_GRANVILLE, "Laura");
 
 		// Delete one by name, another by character, leave one
 		betrayalService.deletePlayer(CHANNEL_ID, deleteByName.getName());
@@ -590,14 +590,14 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testDeleteBetrayalGame_channelIdNotFound() throws BetrayalException {
-		// Create alternate betrayal game, to ensure query is using channelId
+	public void testDeleteBetrayalGame_betrayalIdNotFound() throws BetrayalException {
+		// Create alternate betrayal game, to ensure query is using betrayalId
 		betrayalService.createBetrayalGame(ALTERNATE_CHANNEL_ID);
 
 		try {
-			// Delete betrayal game with nonexistent channelId
+			// Delete betrayal game with nonexistent betrayalId
 			betrayalService.deleteBetrayalGame(CHANNEL_ID);
-			Assert.fail("DeleteBetrayalGame with nonexistent channelId should have thrown an exception");
+			Assert.fail("DeleteBetrayalGame with nonexistent betrayalId should have thrown an exception");
 		} catch (BetrayalException e) {
 			Assert.assertEquals(e.getHttpCode(), Response.Status.NOT_FOUND);
 		}
@@ -605,40 +605,40 @@ public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void testDeleteBetrayalGame_success() throws BetrayalException {
-		// Create 2 games with different channelIds, adding 2 players to each
+		// Create 2 games with different betrayalIds, adding 2 players to each
 		Betrayal toDelete = betrayalService.createBetrayalGame(CHANNEL_ID);
 		Betrayal toKeep = betrayalService.createBetrayalGame(ALTERNATE_CHANNEL_ID);
-		Player toDeletePlayer1 = betrayalService.addPlayer(CHANNEL_ID, "Aaron", Character.ZOE_INGSTROM);
-		Player toDeletePlayer2 = betrayalService.addPlayer(CHANNEL_ID, "Chris", Character.VIVIAN_LOPEZ);
-		Player toKeepPlayer1 = betrayalService.addPlayer(ALTERNATE_CHANNEL_ID, "Laura", Character.HEATHER_GRANVILLE);
-		Player toKeepPlayer2 = betrayalService.addPlayer(ALTERNATE_CHANNEL_ID, "Jonathan", Character.DARRIN_WILLIAMS);
+		Player toDeletePlayer1 = betrayalService.addPlayer(CHANNEL_ID, Character.ZOE_INGSTROM, "Aaron");
+		Player toDeletePlayer2 = betrayalService.addPlayer(CHANNEL_ID, Character.VIVIAN_LOPEZ, "Chris");
+		Player toKeepPlayer1 = betrayalService.addPlayer(ALTERNATE_CHANNEL_ID, Character.HEATHER_GRANVILLE, "Laura");
+		Player toKeepPlayer2 = betrayalService.addPlayer(ALTERNATE_CHANNEL_ID, Character.DARRIN_WILLIAMS, "Jonathan");
 
 		// Delete one of the betrayal games, keeping the other
-		betrayalService.deleteBetrayalGame(toDelete.getChannelId());
+		betrayalService.deleteBetrayalGame(toDelete.getBetrayalId());
 
 		// Ensure betrayal game is not found, and players were also deleted
 		try {
-			betrayalService.getBetrayalGame(toDelete.getChannelId());
+			betrayalService.getBetrayalGame(toDelete.getBetrayalId());
 			Assert.fail("GetBetrayalGame should have thrown NOT_FOUND when trying to get a deleted Betrayal game");
 		} catch (BetrayalException e) {
 			Assert.assertEquals(e.getHttpCode(), Response.Status.NOT_FOUND);
 		}
 		try {
-			betrayalService.getPlayer(toDelete.getChannelId(), toDeletePlayer1.getName());
+			betrayalService.getPlayer(toDelete.getBetrayalId(), toDeletePlayer1.getName());
 			Assert.fail("GetPlayer should have thrown NOT_FOUND when trying to get Player deleted via Betrayal delete");
 		} catch (BetrayalException e) {
 			Assert.assertEquals(e.getHttpCode(), Response.Status.NOT_FOUND);
 		}
 		try {
-			betrayalService.getPlayer(toDelete.getChannelId(), toDeletePlayer2.getName());
+			betrayalService.getPlayer(toDelete.getBetrayalId(), toDeletePlayer2.getName());
 			Assert.fail("GetPlayer should have thrown NOT_FOUND when trying to get Player deleted via Betrayal delete");
 		} catch (BetrayalException e) {
 			Assert.assertEquals(e.getHttpCode(), Response.Status.NOT_FOUND);
 		}
 
 		// Verify other betrayal game and players still exist (can get player and game without throwing exception)
-		betrayalService.getBetrayalGame(toKeep.getChannelId());
-		betrayalService.getPlayer(toKeep.getChannelId(), toKeepPlayer1.getName());
-		betrayalService.getPlayer(toKeep.getChannelId(), toKeepPlayer2.getName());
+		betrayalService.getBetrayalGame(toKeep.getBetrayalId());
+		betrayalService.getPlayer(toKeep.getBetrayalId(), toKeepPlayer1.getName());
+		betrayalService.getPlayer(toKeep.getBetrayalId(), toKeepPlayer2.getName());
 	}
 }

@@ -12,7 +12,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
 
-import com.github.aawkall.betrayalapi.entity.Player.Character;
+import com.github.aawkall.betrayalapi.entity.db.Player.Character;
 import com.github.aawkall.betrayalapi.exception.BetrayalException;
 import com.github.aawkall.betrayalapi.util.BetrayalConst;
 import com.github.aawkall.betrayalapi.util.BetrayalConst.Stat;

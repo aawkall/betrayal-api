@@ -13,16 +13,26 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
+import com.github.aawkall.betrayalapi.mapper.BetrayalMapperFactory;
 import com.github.aawkall.betrayalapi.util.BetrayalConst;
 import com.mongodb.MongoClient;
 
+import ma.glasnost.orika.MapperFacade;
+
 @Configuration
-@ComponentScan(basePackages = {"com.github.aawkall.betrayalapi.service", "com.github.aawkall.betrayalapi.resource"})
+@ComponentScan(basePackages = { "com.github.aawkall.betrayalapi.service",
+		"com.github.aawkall.betrayalapi.resource", "com.github.aawkall.betrayalapi.mapper" })
 @EnableMongoRepositories(basePackages = "com.github.aawkall.betrayalapi.repository")
 public class ApplicationContext {
 
 	@Inject
 	private Environment env;
+
+	@Inject
+	@Bean
+	public MapperFacade mapperFacade(final BetrayalMapperFactory betrayalMapperFactory) throws Exception {
+		return betrayalMapperFactory.getObject().getMapperFacade();
+	}
 
 	@Bean
 	public MongoDbFactory mongoDbFactory() throws UnknownHostException {

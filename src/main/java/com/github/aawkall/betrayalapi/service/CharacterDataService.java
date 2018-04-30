@@ -1,6 +1,6 @@
 package com.github.aawkall.betrayalapi.service;
 
-import com.github.aawkall.betrayalapi.entity.Player.Character;
+import com.github.aawkall.betrayalapi.entity.db.Player.Character;
 import com.github.aawkall.betrayalapi.exception.BetrayalException;
 import com.github.aawkall.betrayalapi.util.BetrayalConst.Stat;
 

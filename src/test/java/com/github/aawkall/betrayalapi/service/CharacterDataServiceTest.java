@@ -7,18 +7,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.github.aawkall.betrayalapi.config.TestContextNoDb;
-import com.github.aawkall.betrayalapi.entity.Player.Character;
+import com.github.aawkall.betrayalapi.entity.db.Player.Character;
 import com.github.aawkall.betrayalapi.exception.BetrayalException;
 import com.github.aawkall.betrayalapi.util.BetrayalConst;
 import com.github.aawkall.betrayalapi.util.BetrayalConst.Stat;
 
-import junit.framework.Assert;
-
 @ContextConfiguration(classes = TestContextNoDb.class)
-@TestExecutionListeners(inheritListeners = false, value = { DependencyInjectionTestExecutionListener.class })
+@TestExecutionListeners(inheritListeners = false, value = {DependencyInjectionTestExecutionListener.class})
 public class CharacterDataServiceTest extends AbstractTestNGSpringContextTests {
 
 	private static final int baseSpeedIndexJaspers = 3;
@@ -38,6 +37,25 @@ public class CharacterDataServiceTest extends AbstractTestNGSpringContextTests {
 
 	@Inject
 	private CharacterDataService characterDataService;
+
+	@Test
+	public void testPlayerCharacterFromString() throws BetrayalException {
+		// Try different forms of character name where one of the tokens is found in the real Character name
+		Assert.assertEquals(Character.fromString("zoe_ingstrom"), Character.ZOE_INGSTROM);
+		Assert.assertEquals(Character.fromString("ZoeIngstrom"), Character.ZOE_INGSTROM);
+		Assert.assertEquals(Character.fromString("zoEIngsTroM"), Character.ZOE_INGSTROM);
+		Assert.assertEquals(Character.fromString("Zoe Ingstrom"), Character.ZOE_INGSTROM);
+		Assert.assertEquals(Character.fromString("zoe-Ingstrom"), Character.ZOE_INGSTROM);
+		Assert.assertEquals(Character.fromString("zoeIng... strom"), Character.ZOE_INGSTROM);
+
+		// If Character.fromString finds more than one possible character, it's rejected and an exception is thrown
+		try {
+			Character.fromString("Z");
+			Assert.fail("Should have thrown an exception when more than one possible Character is found via Character.fromString");
+		} catch (BetrayalException e) {
+			Assert.assertEquals(e.getHttpCode(), Response.Status.BAD_REQUEST);
+		}
+	}
 
 	@Test
 	public void testGetStatBaseIndex() throws BetrayalException {
