@@ -24,7 +24,7 @@ public class BetrayalUtils {
 
 	public static URI getRequestUriWithoutLastSegment(UriInfo uriInfo) throws Exception {
 		URL requestUrl = uriInfo.getRequestUri().toURL();
-		URL entityUrl = new URL(requestUrl.toString().substring(0, requestUrl.toString().lastIndexOf('/')));
+		URL entityUrl = new URL(requestUrl.toString().substring(0, requestUrl.toString().lastIndexOf('/')).replace("%20", ""));
 		return entityUrl.toURI();
 	}
 

@@ -1,6 +1,17 @@
+buildscript {
+	repositories {
+		jcenter()
+	}
+
+	dependencies {
+		classpath 'com.bmuschko:gradle-cargo-plugin:2.3'
+	}
+}
+
 apply plugin: 'java'
 apply plugin: 'war'
 apply plugin: 'eclipse-wtp'
+apply plugin: 'com.bmuschko.cargo'
 
 sourceCompatibility = 1.8
 
@@ -9,8 +20,22 @@ repositories {
 	mavenCentral()
 }
 
+sourceSets {
+	functionalTest {
+		java.srcDir 'src/functional/java'
+		resources.srcDir 'src/functional/resources'
+	}
+}
+
+configurations {
+	compile {
+		exclude group: 'junit'
+		exclude module: 'junit'
+	}
+}
+
 compileJava	 {
-	options.compilerArgs = ["-proc:none"]  
+	options.compilerArgs = ["-proc:none"]
 }
 
 dependencies {
@@ -36,6 +61,11 @@ dependencies {
 	compile 'org.springframework:spring-web:4.3.16.RELEASE'
 	compile 'org.springframework.data:spring-data-mongodb:1.10.11.RELEASE'
 
+	cargo group: 'org.jboss.as', name: 'jboss-as-controller-client', version: '7.2.0.Final'
+	def cargoVersion = '1.6.7'
+	cargo "org.codehaus.cargo:cargo-core-uberjar:$cargoVersion",
+		"org.codehaus.cargo:cargo-ant:$cargoVersion"
+
 	testCompile ('de.flapdoodle.embed:de.flapdoodle.embed.mongo:2.0.3') {
 		exclude group: 'org.mongodb', module: 'mongo-java-driver'
 	}
@@ -47,20 +77,70 @@ dependencies {
 	}
 	testCompile 'org.springframework:spring-test:4.3.16.RELEASE'
 	testCompile 'org.testng:testng:6.14.3'
-	testCompile 'org.glassfish.jersey.test-framework:jersey-test-framework-core:2.27'
+	testCompile 'io.rest-assured:rest-assured:3.1.0'
+
+	functionalTestCompile sourceSets.main.output
+	functionalTestCompile sourceSets.test.output
+
+	functionalTestCompile configurations.compile
+	functionalTestCompile configurations.testCompile
+
+	functionalTestRuntime configurations.runtime
+	functionalTestRuntime configurations.testRuntime
 }
 
 test.outputs.upToDateWhen { false }
 
 test {
-    useTestNG() {}
+	useTestNG() {}
+
+	testLogging {
+		showStandardStreams = true
+		exceptionFormat "full"
+		events "passed", "skipped", "failed"
+	}
+}
+
+cargo {
+	containerId = 'tomcat9x'
+	port = 8080
+
+	local {
+		outputFile = file('build/betrayalapi.log')
+		logFile = file('build/cargo.log')
+
+		deployable {
+			context = 'betrayal-api'
+		}
+
+		installer {
+			installUrl = 'http://apache.mirrors.tds.net/tomcat/tomcat-9/v9.0.7/bin/apache-tomcat-9.0.7.tar.gz'
+			downloadDir = file('build/libs')
+			extractDir = file('build/libs')
+		}
+	}
+}
+cargoStartLocal.dependsOn assemble
+cargoRunLocal.dependsOn assemble
+
+task functionalTest(type: Test) {
+	useTestNG() {}
+
+	testClassesDir = sourceSets.functionalTest.output.classesDir
+	classpath = sourceSets.functionalTest.runtimeClasspath
+	outputs.upToDateWhen { false }
 
     testLogging {
-        showStandardStreams = true
-        exceptionFormat "full"
-        events "passed", "skipped", "failed"
-    }
+		showStandardStreams = true
+		exceptionFormat "full"
+		events "passed", "skipped", "failed"
+	}
+
+	mustRunAfter tasks.test
 }
+functionalTest.dependsOn cargoStartLocal
+functionalTest.finalizedBy cargoStopLocal
+check.dependsOn functionalTest
 
 war {
 	archiveName = 'betrayalapi.war'

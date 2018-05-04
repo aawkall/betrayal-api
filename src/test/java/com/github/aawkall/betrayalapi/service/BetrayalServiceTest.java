@@ -27,7 +27,7 @@ import com.github.aawkall.betrayalapi.util.BetrayalConst.Stat;
 import com.mongodb.MongoClient;
 
 @ContextConfiguration(classes = TestContext.class)
-@TestExecutionListeners(inheritListeners = false, value = { DependencyInjectionTestExecutionListener.class })
+@TestExecutionListeners(inheritListeners = false, value = {DependencyInjectionTestExecutionListener.class})
 public class BetrayalServiceTest extends AbstractTestNGSpringContextTests {
 
 	private static final String CHANNEL_ID = "TestBetrayalId";

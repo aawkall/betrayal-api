@@ -42,6 +42,6 @@ public class BetrayalException extends Exception implements ExceptionMapper<Betr
 	public Response toResponse(BetrayalException exception) {
 		int statusCode = exception.getHttpCode().getStatusCode();
 		log.error("BetrayalException: {}, sending http code: {}", exception.getMessage(), statusCode);
-		return Response.status(statusCode).entity(exception.getMessage()).type("text/plain").build();
+		return Response.status(statusCode).entity("{ \"error\": \"" + exception.getMessage() + "\" }").type("application/json").build();
 	}
 }
